@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 const environment = process.env.NODE_ENV || 'production';
 dotenv.config({ path: `./.env.${environment}` });
 
-const PORT = process.env.PORT || 9992;
+const PORT = process.env.PORT || 90;
 const DB_CONNECTION_STRING = process.env.DB_CONNECTION_STRING || 'mongodb://localhost:27017/mydatabase';
 const SECRET_KEY = process.env.SECRET_KEY || 'mysecretkey';
 const AWS_ACCESS_KEY_ID=process.env.ACCESS_KEY || 'AKIAXG7ITWKGBUQQ3YAC';
