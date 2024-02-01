@@ -44,7 +44,8 @@ export const Logout = (req: Request, res: Response): void => {
   res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: {} });
 };
 export const GetUserList = (req: Request, res: Response): void => {
-  const filters: DynamoDBFilter[] = [];
+  var filters: DynamoDBFilter[] = [];
+  
   if(req.query.role)
   {
     filters.push({ key: 'userRole', value: req.query.role.toString(), type: 'string' })
@@ -53,17 +54,15 @@ export const GetUserList = (req: Request, res: Response): void => {
   {
     filters.push( { key: 'userStatus', value: req.query.status.toString(), type: 'string' })   
   }
-  
-  
+  console.log(filters);
+
   const { FilterExpression, ExpressionAttributeValues } = buildFilterExpression(filters);
-  var EmptyParams = { TableName: 'Goodway.Users'}
-  var params = {
+  var params = filters.length!=0? ({
     TableName: 'Goodway.Users',
     FilterExpression,
     ExpressionAttributeValues
-    };
-
-    dynamoDB.scan(EmptyParams, (err, data) => {
+    }):({ TableName: 'Goodway.Users'});
+    dynamoDB.scan(params, (err, data) => {
       if (err) {
         res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION ,data: err });
       } else {
