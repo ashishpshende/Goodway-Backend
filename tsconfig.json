@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true
+  },
+  "scripts": {
+    "start": "ts-node --env=development src/app.ts",
+    "start:prod": "ts-node --env=production src/app.ts"
+  }
+
+}
