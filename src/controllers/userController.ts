@@ -1,13 +1,11 @@
 // controllers/sampleController.ts
 import { Request, Response } from 'express';
 import * as RESPONSE_CONSTANTS from '../Constants/responseConstants';
-
 import * as AWS from 'aws-sdk';
 import config from '../config';
 import { buildFilterExpression,DynamoDBFilter } from '../Utility/DBUtility';
+import User from '../Models/User';
 AWS.config.update({region:'us-east-1'});
-
-
 AWS.config.update({
   accessKeyId: config.AWS_ACCESS_KEY_ID,
   secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
@@ -15,8 +13,6 @@ AWS.config.update({
 });
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
-
 export const Login = (req: Request, res: Response): void => {
   // Define the parameters for the query with a condition
 const params = {
@@ -36,7 +32,11 @@ const params = {
         if(data.Count==0)
         res.json({ statusCode: RESPONSE_CONSTANTS.UNAUTHORZIED ,data: {} });
         else
-        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data });
+        {
+          var user = new User(data.Items?data.Items[0]:{});
+          res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data:user });
+        }
+        
       }
     });
 };
@@ -54,8 +54,6 @@ export const GetUserList = (req: Request, res: Response): void => {
   {
     filters.push( { key: 'userStatus', value: req.query.status.toString(), type: 'string' })   
   }
-  console.log(filters);
-
   const { FilterExpression, ExpressionAttributeValues } = buildFilterExpression(filters);
   var params = filters.length!=0? ({
     TableName: 'Goodway.Users',
@@ -69,12 +67,35 @@ export const GetUserList = (req: Request, res: Response): void => {
         if(data.Count==0)
         res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND ,data: {} });
         else
-        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data });
+        {
+          var user = new User(data.Items?data.Items[0]:{});
+          res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: user });
+        }
       }
     });
 };
 export const GetUser = (req: Request, res: Response): void => {
-  res.json({ message: 'Hello, this is a sample API!' });
+  var filters: DynamoDBFilter[] = [];
+  if(req.query.id)
+  {
+    filters.push({ key: 'id', value: Number.parseInt(req.query.id.toString()), type: 'number' })
+  }
+  const { FilterExpression, ExpressionAttributeValues } = buildFilterExpression(filters);
+  var params =  {
+    TableName: 'Goodway.Users',
+    FilterExpression,
+    ExpressionAttributeValues
+    };
+    dynamoDB.scan(params, (err, data) => {
+      if (err) {
+        res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION ,data: err });
+      } else {
+        if(data.Count==0)
+        res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND ,data: {} });
+        else
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items });
+      }
+    });
 };
 export const UpdateUser = (req: Request, res: Response): void => {
   res.json({ message: 'Hello, this is a sample API!' });
