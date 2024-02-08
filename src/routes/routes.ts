@@ -3,7 +3,7 @@ import * as express from 'express';
 import { getSampleData } from '../controllers/sampleController';
 
 import { Login,GetUserList, GetUser } from '../controllers/userController';
-import { GetParcel, GetParcelList, SaveParcel, UpdateParcel, UpdateParcelStatus } from '../controllers/parcelController';
+import { GetParcelByCnNo, GetParcelById, GetParcelList, SaveParcel, UpdateParcel, UpdateParcelStatus } from '../controllers/parcelController';
 
 
 const router = express.Router();
@@ -19,7 +19,8 @@ router.get('/users/info',GetUser)
 
 // Parcel Routes
 router.get('/parcels/list',GetParcelList);
-router.get('/parcels/info',GetParcel);
+router.get('/parcels/infoById',GetParcelById);
+router.get('/parcels/infoByCnNo',GetParcelByCnNo);
 router.post('/parcels/save',SaveParcel);
 router.put('/parcels/update',UpdateParcel);
 router.patch('/parcels/updateStatus',UpdateParcelStatus);

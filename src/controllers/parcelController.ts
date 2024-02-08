@@ -50,13 +50,13 @@ export const GetParcelList = (req: Request, res: Response): void => {
     }
   });
 };
-export const GetParcel = (req: Request, res: Response): void => {
+export const GetParcelByCnNo = (req: Request, res: Response): void => {
   var filters: DynamoDBFilter[] = [];
-  if (req.query.id) {
+  if (req.query.cnNo) {
     filters.push({
-      key: "id",
-      value: Number.parseInt(req.query.id.toString()),
-      type: "number",
+      key: "cnNo",
+      value: req.query.cnNo.toString(),
+      type: "string",
     });
   }
   const { FilterExpression, ExpressionAttributeValues } =
@@ -75,7 +75,38 @@ export const GetParcel = (req: Request, res: Response): void => {
       else
       {
         var parcel = new Parcel(data.Items ? data.Items[0] : {});
-        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items });
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: parcel });
+
+      }
+    }
+  });
+};
+export const GetParcelById = (req: Request, res: Response): void => {
+  var filters: DynamoDBFilter[] = [];
+  if (req.query.id) {
+    filters.push({
+      key: "id",
+      value: req.query.id.toString(),
+      type: "string",
+    });
+  }
+  const { FilterExpression, ExpressionAttributeValues } =
+    buildFilterExpression(filters);
+  var params = {
+    TableName: TableName,
+    FilterExpression,
+    ExpressionAttributeValues,
+  };
+  dynamoDB.scan(params, (err, data) => {
+    if (err) {
+      res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: err });
+    } else {
+      if (data.Count == 0)
+        res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
+      else
+      {
+        var parcel = new Parcel(data.Items ? data.Items[0] : {});
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: parcel});
 
       }
     }
