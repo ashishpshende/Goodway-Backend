@@ -23,7 +23,7 @@ router.get('/parcels/infoById',GetParcelById);
 router.get('/parcels/infoByCnNo',GetParcelByCnNo);
 router.post('/parcels/save',SaveParcel);
 router.put('/parcels/update',UpdateParcel);
-router.patch('/parcels/updateStatus',UpdateParcelStatus);
+router.post('/parcels/updateStatus',UpdateParcelStatus);
 
 
 
