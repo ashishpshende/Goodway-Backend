@@ -112,6 +112,66 @@ export const GetParcelById = (req: Request, res: Response): void => {
     }
   });
 };
+export const GetParcelListBySubDealer = (req: Request, res: Response): void => {
+  var filters: DynamoDBFilter[] = [];
+  if (req.query.subdealer) {
+    filters.push({
+      key: "parcelTo",
+      value: req.query.subdealer.toString(),
+      type: "string",
+    });
+  }
+  const { FilterExpression, ExpressionAttributeValues } =
+    buildFilterExpression(filters);
+  var params = {
+    TableName: TableName,
+    FilterExpression,
+    ExpressionAttributeValues,
+  };
+  dynamoDB.scan(params, (err, data) => {
+    if (err) {
+      res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: err });
+    } else {
+      if (data.Count == 0)
+        res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
+      else
+      {
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items});
+
+      }
+    }
+  });
+};
+export const GetParcelListByDealer = (req: Request, res: Response): void => {
+  var filters: DynamoDBFilter[] = [];
+  if (req.query.dealer) {
+    filters.push({
+      key: "parcelFrom",
+      value: req.query.dealer.toString(),
+      type: "string",
+    });
+  }
+  const { FilterExpression, ExpressionAttributeValues } =
+    buildFilterExpression(filters);
+  var params = {
+    TableName: TableName,
+    FilterExpression,
+    ExpressionAttributeValues,
+  };
+  dynamoDB.scan(params, (err, data) => {
+    if (err) {
+      res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: err });
+    } else {
+      if (data.Count == 0)
+        res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
+      else
+      {
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items});
+
+      }
+    }
+  });
+};
 export const SaveParcel = (req: Request, res: Response): void => {
   var newParcel = new Parcel(req.body);
   newParcel.id = uuidv4();

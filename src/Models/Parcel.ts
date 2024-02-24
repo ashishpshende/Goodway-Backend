@@ -8,10 +8,11 @@ class Parcel extends BaseModel {
   public parcelStatus!: string;
   public cnType!: string;
   public weight!: string;
+  public amount!: string;
   public cnNo!: string;
   public mobile!: string;
-  public from!: string;
-  public to!: string;
+  public parcelFrom!: string;
+  public parcelTo!: string;
   public remarks!: string;
   public dealer!: string;
   constructor(requestJSON: any) {
@@ -21,10 +22,11 @@ class Parcel extends BaseModel {
     this.parcelStatus = requestJSON["parcelStatus"];
     this.cnType = requestJSON["cnType"];
     this.weight = requestJSON["weight"];
+    this.amount = requestJSON["amount"];
     this.cnNo = requestJSON["cnNo"];
     this.mobile = requestJSON["mobile"];
-    this.from = requestJSON["from"];
-    this.to = requestJSON["to"];
+    this.parcelFrom = requestJSON["parcelFrom"];
+    this.parcelTo = requestJSON["parcelTo"];
     this.remarks = requestJSON["remarks"];
     this.dealer = requestJSON["dealer"];
   }

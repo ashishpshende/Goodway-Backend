@@ -104,6 +104,34 @@ export const GetUser = (req: Request, res: Response): void => {
     }
   });
 };
+
+export const GetReceiver = (req: Request, res: Response): void => {
+  var filters: DynamoDBFilter[] = [];
+  if (req.query.id) {
+    filters.push({
+      key: "id",
+      value: Number.parseInt(req.query.id.toString()),
+      type: "number",
+    });
+  }
+  const { FilterExpression, ExpressionAttributeValues } =
+    buildFilterExpression(filters);
+  var params = {
+    TableName: "Goodway.Users",
+    FilterExpression,
+    ExpressionAttributeValues,
+  };
+  dynamoDB.scan(params, (err, data) => {
+    if (err) {
+      res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: err });
+    } else {
+      if (data.Count == 0)
+        res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
+      else
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items });
+    }
+  });
+};
 export const UpdateUser = (req: Request, res: Response): void => {
   res.json({ message: "Hello, this is a sample API!" });
 };
