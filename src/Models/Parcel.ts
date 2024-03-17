@@ -28,7 +28,7 @@ class Parcel extends BaseModel {
     this.parcelFrom = requestJSON["parcelFrom"];
     this.parcelTo = requestJSON["parcelTo"];
     this.remarks = requestJSON["remarks"];
-    this.dealer = requestJSON["dealer"];
+    this.dealer = requestJSON["dealer"];    
   }
 }
 

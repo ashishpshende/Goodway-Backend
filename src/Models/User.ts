@@ -3,7 +3,9 @@ import { Request, Response } from 'express';
 import BaseModel from './BaseModel';
 
 class User extends BaseModel {
+        public name!: string;
         public userName!: string;
+        public prefix!: string;
         public phoneNumber!: string;
         public city!: string;        
         public password!: string;
@@ -13,6 +15,8 @@ class User extends BaseModel {
         constructor(requestJSON:any)
         {
           super(requestJSON);  
+          this.name = requestJSON["name"];
+          this.prefix = requestJSON["prefix"];
           this.userName = requestJSON["userName"];
           this.phoneNumber =  requestJSON["phoneNumber"];
           this.password =  requestJSON["password"];

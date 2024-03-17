@@ -11,7 +11,7 @@ AWS.config.update({
   secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
   region: config.AWS_REGION,
 });
-
+const TableName = "Goodway.Parcels";
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 export const Login = (req: Request, res: Response): void => {
   // Define the parameters for the query with a condition
@@ -133,7 +133,21 @@ export const GetReceiver = (req: Request, res: Response): void => {
   });
 };
 export const UpdateUser = (req: Request, res: Response): void => {
-  res.json({ message: "Hello, this is a sample API!" });
+  const item = {
+    TableName: TableName, // Replace with your table name
+    Key: {
+      id: req.body.id.toString(), // Replace with the primary key of the item to be updated
+    },
+    Item: req.body,
+  };
+  // Put item into DynamoDB
+  dynamoDB.put(item, (error, data) => {
+    if (error) {
+      res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: error });
+    } else {
+      res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data });
+    }
+  });
 };
 export const DeactivateUser = (req: Request, res: Response): void => {
   res.json({ message: "Hello, this is a sample API!" });

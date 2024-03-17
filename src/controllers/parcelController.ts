@@ -4,7 +4,7 @@ import * as RESPONSE_CONSTANTS from "../Constants/responseConstants";
 import * as AWS from "aws-sdk";
 import config from "../config";
 import { buildFilterExpression, DynamoDBFilter } from "../Utility/DBUtility";
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import Parcel from "../Models/Parcel";
 AWS.config.update({ region: "us-east-1" });
 AWS.config.update({
@@ -17,34 +17,41 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const TableName = "Goodway.Parcels";
 
 export const GetParcelList = (req: Request, res: Response): void => {
-  var filters: DynamoDBFilter[] = [];
+  var values: Record<string, any> = {};
+  var params = {
+    TableName: TableName,
+    FilterExpression: "",
+    ExpressionAttributeValues: values,
+  };
+  if (req.query.statuses && req.query.statuses !== "All") {
+    var query = " contains ";
+    var statuses = req.query.statuses.toString().split(",");
+    for (let index = 0; index < statuses.length; index++) {
+      const element = statuses[index];
+      if (element !== "All") {
+        var keyName = ":parcelStatus_" + index;
+        query += "(parcelStatus, " + keyName + ")";
+        params.ExpressionAttributeValues[keyName] = element;
+      }
+      if (index !== statuses.length - 1) {
+        query += " OR ";
+      }
+    }
 
-
-  if (req.query.status) {
-    filters.push({
-      key: "parcelStatus",
-      value: req.query.status.toString(),
-      type: "string",
-    });
+    params.FilterExpression = query;
   }
-  const { FilterExpression, ExpressionAttributeValues } =
-    buildFilterExpression(filters);
-  var params =
-    filters.length != 0
-      ? {
-          TableName: TableName,
-          FilterExpression,
-          ExpressionAttributeValues,
-        }
-      : { TableName: TableName };
-  dynamoDB.scan(params, (err, data) => {
+  else
+  {
+    
+  }
+
+  dynamoDB.scan((req.query.statuses?params:{TableName: TableName}), (err, data) => {
     if (err) {
       res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: err });
     } else {
       if (data.Count == 0)
         res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
       else {
-        
         res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items });
       }
     }
@@ -72,11 +79,9 @@ export const GetParcelByCnNo = (req: Request, res: Response): void => {
     } else {
       if (data.Count == 0)
         res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
-      else
-      {
+      else {
         var parcel = new Parcel(data.Items ? data.Items[0] : {});
         res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: parcel });
-
       }
     }
   });
@@ -103,11 +108,9 @@ export const GetParcelById = (req: Request, res: Response): void => {
     } else {
       if (data.Count == 0)
         res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
-      else
-      {
+      else {
         var parcel = new Parcel(data.Items ? data.Items[0] : {});
-        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: parcel});
-
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: parcel });
       }
     }
   });
@@ -134,10 +137,8 @@ export const GetParcelListBySubDealer = (req: Request, res: Response): void => {
     } else {
       if (data.Count == 0)
         res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
-      else
-      {
-        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items});
-
+      else {
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items });
       }
     }
   });
@@ -146,11 +147,12 @@ export const GetParcelListByDealer = (req: Request, res: Response): void => {
   var filters: DynamoDBFilter[] = [];
   if (req.query.dealer) {
     filters.push({
-      key: "parcelFrom",
-      value: req.query.dealer.toString(),
-      type: "string",
+      key: "createdBy",
+      value: Number.parseInt(req.query.dealer.toString()),
+      type: "number",
     });
   }
+
   const { FilterExpression, ExpressionAttributeValues } =
     buildFilterExpression(filters);
   var params = {
@@ -158,33 +160,115 @@ export const GetParcelListByDealer = (req: Request, res: Response): void => {
     FilterExpression,
     ExpressionAttributeValues,
   };
+  if (req.query.statuses && req.query.statuses !== "All") {
+    var query = "contains ";
+    var statuses = req.query.statuses.toString().split(",");
+
+    for (let index = 0; index < statuses.length; index++) {
+      const element = statuses[index];
+      if (element !== "All") {
+        var keyName = ":parcelStatus_" + index;
+        query += "(parcelStatus, " + keyName + ")";
+        ExpressionAttributeValues[keyName] = element;
+      }
+      if (index !== statuses.length - 1) {
+        query += " OR ";
+      }
+    }
+
+    params.FilterExpression += " AND (" + query + ")";
+  }
   dynamoDB.scan(params, (err, data) => {
     if (err) {
       res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: err });
     } else {
       if (data.Count == 0)
         res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
-      else
-      {
-        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items});
+      else {
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items });
+      }
+    }
+  });
+};
+export const GetParcelListByStatuses = (req: Request, res: Response): void => {
+  var ExpressionAttributeValues: Record<string,any> = {}
+  var params = {
+    TableName: TableName,
+    FilterExpression:"",
+    ExpressionAttributeValues: {},
+  };
 
+  if (req.query.statuses && req.query.statuses !== "All") {
+    var query = "contains ";
+    var statuses = req.query.statuses.toString().split(",");
+
+    for (let index = 0; index < statuses.length; index++) {
+      const element = statuses[index];
+      if (element !== "All") {
+        var keyName = ":parcelStatus_" + index;
+        query += "(parcelStatus, " + keyName + ")";
+        ExpressionAttributeValues[keyName] = element;
+      }
+      if (index !== statuses.length - 1) {
+        query += " OR ";
+      }
+    }
+    params.FilterExpression += query;
+  }
+  params.ExpressionAttributeValues = ExpressionAttributeValues;
+
+
+  dynamoDB.scan(params, (err, data) => {
+    if (err) {
+      res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: err });
+    } else {
+      if (data.Count == 0)
+        res.json({ statusCode: RESPONSE_CONSTANTS.NO_RESULT_FOUND, data: {} });
+      else {
+        res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data.Items });
       }
     }
   });
 };
 export const SaveParcel = (req: Request, res: Response): void => {
-  var newParcel = new Parcel(req.body);
-  newParcel.id = uuidv4();
-  const item = {
-    TableName: TableName, // Replace with your table name
-    Item: newParcel,
+
+  const ParcelNumberCounterParams = {
+    TableName: "ParcelNumberCounter", // Replace with your table name
+    Key: {
+      id: req.body.createdBy, // Replace with the primary key of the item to be updated
+    },
+    UpdateExpression: "SET #attrName = #attrName + :attrValue", // Update expression
+    ExpressionAttributeNames: {
+      "#attrName": "lastIndex", // Replace with the attribute name to be updated
+    },
+    ExpressionAttributeValues: {
+      ":attrValue": 1, // Replace with the new attribute value
+    },
+    ReturnValues: "ALL_NEW", // Specify the information to return after the update
   };
-  // Put item into DynamoDB
-  dynamoDB.put(item, (error, data) => {
-    if (error) {
-      res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: error });
+
+  dynamoDB.update(ParcelNumberCounterParams, (err, data) => {
+    if (err) {
     } else {
-      res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data });
+      var newParcel = new Parcel(req.body);
+      newParcel.id = uuidv4();
+      newParcel.cnNo =
+        newParcel.cnNo +
+        "-" +
+        data?.Attributes?.lastIndex.toString().padStart(7, "0");
+      const item = {
+        TableName: TableName, // Replace with your table name
+        Item: newParcel,
+      };
+
+      dynamoDB.put(item, (error, data) => {
+        if (error) {
+
+          res.json({ statusCode: RESPONSE_CONSTANTS.EXCEPTION, data: error });
+        } else {
+          res.json({ statusCode: RESPONSE_CONSTANTS.SUCCESS, data: data });
+        }
+      });
     }
   });
 };
@@ -209,13 +293,13 @@ export const UpdateParcelStatus = (req: Request, res: Response): void => {
     Key: {
       id: req.body.id, // Replace with the primary key of the item to be updated
     },
-    UpdateExpression: 'SET #attrName = :attrValue', // Update expression
+    UpdateExpression: "SET #attrName = :attrValue", // Update expression
     ExpressionAttributeNames: {
-        '#attrName': 'parcelStatus', // Replace with the attribute name to be updated
-      },
-      ExpressionAttributeValues: {
-        ':attrValue': req.body.parcelStatus, // Replace with the new attribute value
-      },
+      "#attrName": "parcelStatus", // Replace with the attribute name to be updated
+    },
+    ExpressionAttributeValues: {
+      ":attrValue": req.body.parcelStatus, // Replace with the new attribute value
+    },
     ReturnValues: "ALL_NEW", // Specify the information to return after the update
   };
 
